@@ -6,21 +6,21 @@ const products = [
         id: 0,
         name: 'Node.js',
         price: 10,
-        image: null,
+        image: 'https://nodejs.org/static/images/logo-hexagon-card.png',
         stock: 5
     },
     {
         id: 1,
         name: 'React.js',
         price: 10,
-        image: null,
+        image: 'https://dwglogo.com/wp-content/uploads/2017/09/1460px-React_logo.png',
         stock: 50
     },
     {
         id: 2,
         name: 'Angular',
         price: 10,
-        image: null,
+        image: 'https://angular.io/assets/images/logos/angularjs/AngularJS-Shield.svg',
         stock: 15
     }
 ];

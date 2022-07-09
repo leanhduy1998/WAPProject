@@ -1,14 +1,14 @@
 const user = {
-    'Anh Duy': 'Duy Anh',
-    'Duy 1': '1',
-    'Duy 2': '2'
+    'AnhDuy': 'DuyAnh',
+    'Duy1': '1',
+    'Duy2': '2'
 }
 
 module.exports = class User {
     constructor() {}
 
     static login(username, password) {
-        if(user[username] === password) {
+        if(user[username] !== null && user[username] === password) {
             return {
                 username: username,
                 token: username + `-${Date.now()}`,

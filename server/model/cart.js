@@ -2,70 +2,65 @@ let host = ""
 let port = "4321"
 
 const cart = {
-    'Anh Duy':
-        [
-            {
-                id: 0,
-                name: 'Node.js',
-                price: 10,
-                quantity: 5,
-                username: 'Anh Duy'
-            },
-            {
-                id: 1,
-                name: 'React.js',
-                price: 10,
-                quantity: 50,
-                username: 'Anh Duy'
-            },
-            {
-                id: 2,
-                name: 'Angular',
-                price: 10,
-                quantity: 15,
-                username: 'Anh Duy'
-            }
-        ]
+    // 'AnhDuy':
+    //     {
+    //         0: {
+    //             name: 'Node.js',
+    //             price: 10,
+    //             quantity: 5,
+    //         },
+    //         1: {
+    //             name: 'React.js',
+    //             price: 10,
+    //             quantity: 50,
+    //         },
+    //         2: {
+    //             name: 'Angular',
+    //             price: 10,
+    //             quantity: 15,
+    //         }
+    //     }
 }
 
 const total = 0
 
 module.exports = class Cart {
-    constructor(id, name, price, quantity, username) {
+    constructor(id, name, price, username) {
         this.id = id
         this.name = name
         this.price = price
-        this.quantity = quantity
+        this.quantity = 1
         this.username = username
     }
 
     save() {
-        if (cart[this.username] === null) {
-            cart[username] = [this];
+        console.log(this);
+        let username = this.username
+        let id = this.id
+        if (cart[username] === null) {
+            cart[username] = {};
+            cart[username][id] = {};
+        } else if (cart[username][id] === null) {
+                cart[username][id] = {};
+                cart[username][id].push(this);
         } else {
-            cart[this.username].push(this);
+            cart[username][this.id].quantity ++;
         }
+        console.log("LOL");
     }
 
     static fetchAll(username) {
-        return cart.filter(([k, v]) => k === username)
+        return cart[username] || []
     }
 
     static findById(username, id) {
-        let userCart = cart.filter(([k, v]) => k === username)
-
-        let list = userCart.filter(p => p.id === id)
-        if (list.length === 0) {
-            return null
+        if (cart[username] === null) {
+            return []
         }
-
-        return list[0]
+        return cart[username][id]
     }
 
     update() {
-        let userCart = cart.filter(([k, v]) => k === this.username)
-        let list = userCart.filter(p => p.id !== this.id)
-        list.push(this)
-        cart[this.username] = list
+        cart[this.username][this.id] = this
     }
 }

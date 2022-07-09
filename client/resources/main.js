@@ -1,109 +1,193 @@
-var path = require('path')
+window.onload = function () {
+    updateUISignedOut()
 
-window.onload = function() {
-    getProducts();
+    document.getElementById('loginBtn').onclick = function (event) {
+        document.getElementById("username").value = 'AnhDuy'
+        document.getElementById("password").value = 'DuyAnh'
 
-    document.getElementById('nav-home').onclick = function(event) {
-        event.preventDefault();
-        getProducts();
+        let username = document.getElementById('username').value
+        let password = document.getElementById('password').value
+
+        login(username, password)
     }
 
-    // add/update product
-    document.getElementById('product-btn').onclick = function(event) {
-        event.preventDefault();
-        if (!document.getElementById('product-btn').dataset.id) {
-            addProduct();
-        } else {
-            editProduct();
-        }
+    document.getElementById('logoutBtn').onclick = function (event) {
+        sessionStorage.setItem('token', null)
+        updateUISignedOut()
+    }
+}
+
+function updateUISignedOut() {
+    document.getElementById('mainView').style.display = 'none'
+    document.getElementById('welcomeUser').style.display = 'none'
+    document.getElementById('loginBtn').style.display = 'block'
+    document.getElementById('logoutBtn').style.display = 'none'
+    document.getElementById('loginForms').style.display = 'block'
+    document.getElementById('welcome').style.display = 'block'
+    document.getElementById('headerDivider').style.display = 'block'
+}
+
+function updateUISignedIn(username) {
+    document.getElementById('mainView').style.display = 'block'
+    document.getElementById('welcome').style.display = 'none'
+    document.getElementById('loginForms').style.display = 'none'
+
+    document.getElementById('welcomeUser').style.display = 'block'
+    document.getElementById('welcomeUser').innerHTML = 'Welcome ' + username
+
+    document.getElementById('loginBtn').style.display = 'none'
+    document.getElementById('logoutBtn').style.display = 'block'
+
+    document.getElementById('headerDivider').style.display = 'none'
+}
+
+async function login(username, password) {
+    let loginResponse = await fetch('http://localhost:4321/login/', {
+        method: 'POST',
+        headers: {
+            'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password,
+        })
+    }).then(response => response.json());
+    handleLoginResponse(loginResponse)
+}
+
+function handleLoginResponse(res) {
+    if (res.status === true) {
+        sessionStorage.setItem('token', res.token)
+        updateUISignedIn(res.username)
+
+        getProducts();
+        getCart(res.username);
+    }
+}
+
+function renderProduct(products) {
+    const table = document.getElementById('productTable');
+    table.innerHTML = '';
+
+    products.forEach(prod => {
+        const tableRow = document.createElement('tr');
+
+        const name = document.createElement('td');
+        name.textContent = prod.name;
+
+        const price = document.createElement('td');
+        price.textContent = prod.price
+
+        const image = document.createElement('td');
+        const img = document.createElement('img');
+        img.src = prod.image;
+        img.height = 50;
+        image.appendChild(img);
+        image.style.textAlign = 'center';
+
+        const stock = document.createElement('td');
+        stock.textContent = prod.stock;
+
+        const actions = document.createElement('td');
+        const cartIcon = document.createElement('i');
+        cartIcon.className = "bi bi-cart-plus";
+        cartIcon.dataset.id = prod.id;
+
+        let addCartClicked = function (prod) {
+            return function () {
+                console.log(prod);
+                addToCart(prod);
+            };
+        };
+        cartIcon.onclick = addCartClicked(prod);
+
+        cartIcon.style.fontSize = '2rem';
+        actions.appendChild(cartIcon);
+        actions.style.textAlign = 'center';
+
+        tableRow.appendChild(name);
+        tableRow.appendChild(price);
+        tableRow.appendChild(image);
+        tableRow.appendChild(stock);
+        tableRow.appendChild(actions);
+        table.appendChild(tableRow);
+    });
+}
+
+function renderCart(cartItems) {
+    console.log(cartItems);
+    if (Object.keys(cartItems).length === 0) {
+        document.getElementById('emptyCart').style.display = 'block'
+        document.getElementById('cartTable').style.display = 'none'
+    } else {
+        document.getElementById('emptyCart').style.display = 'none'
+        document.getElementById('cartTable').style.display = 'block'
+    }
+
+    const table = document.getElementById('cartTable');
+    table.innerHTML = '';
+
+    for (const [id, prod] of Object.entries(cartItems)) {
+        const tableRow = document.createElement('tr');
+
+        const name = document.createElement('td');
+        name.textContent = prod.name;
+
+        const price = document.createElement('td');
+        price.textContent = prod.price
+
+        const total = document.createElement('td');
+        total.textContent = prod.quantity * prod.price;
+
+        const quantity = document.createElement('td');
+        quantity.textContent = prod.quantity;
+
+        tableRow.appendChild(name);
+        tableRow.appendChild(price);
+        tableRow.appendChild(total);
+        tableRow.appendChild(quantity);
+        table.appendChild(tableRow);
     }
 }
 
 async function getProducts() {
-    let products = await fetch('http://localhost:4321/products/').then(response => response.json());
-    products.forEach(prod => renderProduct(prod));
+    let products = await fetch('http://localhost:4321/products/', {
+        method: 'GET',
+        headers: {
+            'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
+        }
+    }).then(response => response.json());
+    renderProduct(products)
 }
 
-function renderProduct(prod) {
-    const div = document.createElement('div');
-    div.classList = 'col-lg-4';
-    div.id = prod.id;
-    div.innerHTML = `
-    <svg class="bd-placeholder-img rounded-circle" width="140" height="140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Placeholder: 140x140" preserveAspectRatio="xMidYMid slice" focusable="false">
-    <title>Placeholder</title>
-    <rect width="100%" height="100%" fill="#777"></rect><text x="50%" y="50%" fill="#777"
-        dy=".3em">140x140</text>
-    </svg>`;
-
-    const h2 = document.createElement('h2');
-    h2.textContent = prod.title;
-
-    const isbn = document.createElement('p');
-    isbn.textContent = prod.isbn;
-
-    const publishedDate = document.createElement('p');
-    publishedDate.textContent = prod.publishedDate;
-
-    const author = document.createElement('p');
-    author.textContent = prod.author;
-
-    div.appendChild(h2);
-    div.appendChild(isbn);
-    div.appendChild(publishedDate);
-    div.appendChild(author);
-
-    const actions = document.createElement('p');
-    const updateBtn = document.createElement('a');
-    updateBtn.classList = 'btn btn-secondary';
-    updateBtn.textContent = 'UPDATE';
-    updateBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-        document.getElementById('product-heading').textContent = 'Edit Product';
-        document.getElementById('title').value = prod.title;
-        document.getElementById('isbn').value = prod.isbn;
-        document.getElementById('publishedDate').value = prod.publishedDate;
-        document.getElementById('author').value = prod.author;
-        document.getElementById('product-btn').dataset.id = prod.id;
-    });
-
-    const deleteBtn = document.createElement('a');
-    deleteBtn.classList = 'btn btn-secondary';
-    deleteBtn.textContent = 'DELETE';
-    deleteBtn.addEventListener('click', function(event) {
-        event.preventDefault();
-
-        fetch('http://localhost:3000/books/' + prod.id, {
-            method: 'DELETE',
-        }).then(response => {
-            alert('Delete Successfully!');
-            div.remove();
-        });
-    });
-
-    actions.appendChild(updateBtn);
-    actions.appendChild(deleteBtn);
-
-    div.appendChild(actions);
-
-    document.getElementById('products').appendChild(div);
-}
-
-
-async function addProduct() {
-    let result = await fetch('http://localhost:3000/books/', {
+async function addToCart(product) {
+    let result = await fetch('http://localhost:4321/cart/', {
         method: 'POST',
         headers: {
             'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
         },
         body: JSON.stringify({
-            title: document.getElementById('title').value,
-            isbn: document.getElementById('isbn').value,
-            publishedDate: document.getElementById('publishedDate').value,
-            author: document.getElementById('author').value
+            id: product.id,
+            name: product.name,
+            price: product.price,
         })
     }).then(res => res.json());
-    document.getElementById('product-form').reset();
-    renderBook(result);
+    renderCart(result);
+}
+
+async function getCart(username) {
+    fetch('http://localhost:4321/cart/' + username, {
+        method: 'GET',
+        headers: {
+            'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
+        }
+    })
+        .then(response => response.json())
+        .then(cart => renderCart(cart));
 }
 
 function editProduct() {
@@ -113,17 +197,17 @@ function editProduct() {
     const publishedDate = document.getElementById('publishedDate').value;
     const author = document.getElementById('author').value;
     fetch('http://localhost:3000/books/' + prodId, {
-            method: 'PUT',
-            headers: {
-                'Content-type': 'application/json',
-            },
-            body: JSON.stringify({
-                title: title,
-                isbn: isbn,
-                publishedDate: publishedDate,
-                author: author
-            })
-        }).then(response => response.json())
+        method: 'PUT',
+        headers: {
+            'Content-type': 'application/json',
+        },
+        body: JSON.stringify({
+            title: title,
+            isbn: isbn,
+            publishedDate: publishedDate,
+            author: author
+        })
+    }).then(response => response.json())
         .then(jsonObj => {
             const productDiv = document.getElementById(prodId);
             productDiv.querySelector('h2').textContent = title;
