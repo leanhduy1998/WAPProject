@@ -10,12 +10,13 @@ exports.findById = (req, res, next) => {
 
 exports.save = (req, res, next) => {
     const prod = req.body;
-    const savedItem = new Cart(prod.id,prod.name, prod.price, prod.image, prod.stock, prod.username).save();
+    console.log(prod);
+    const savedItem = new Cart(prod.id,prod.name, 1, prod.price, prod.username).save();
     res.status(201).json(savedItem);
 }
 
 exports.update = (req, res, next) => {
     const prod = req.body;
-    const updatedProd = new Cart(prod.id, prod.title, prod.price, prod.image, prod.stock, prod.username).update();
+    const updatedProd = new Cart(prod.id, prod.name, prod.quantity, prod.price, prod.username).update();
     res.status(200).json(updatedProd);
 }

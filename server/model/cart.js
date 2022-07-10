@@ -25,28 +25,28 @@ const cart = {
 const total = 0
 
 module.exports = class Cart {
-    constructor(id, name, price, username) {
+    constructor(id, name, quantity, price, username) {
         this.id = id
         this.name = name
         this.price = price
-        this.quantity = 1
+        this.quantity = quantity
         this.username = username
     }
 
     save() {
-        console.log(this);
         let username = this.username
         let id = this.id
-        if (cart[username] === null) {
+        
+        if (!(username in cart)) {
             cart[username] = {};
-            cart[username][id] = {};
-        } else if (cart[username][id] === null) {
-                cart[username][id] = {};
-                cart[username][id].push(this);
+            cart[username][id] = this;
+        } else if (!(id in cart[username])) {
+            cart[username][id] = this
+                
         } else {
-            cart[username][this.id].quantity ++;
+            cart[username][id].quantity ++;
         }
-        console.log("LOL");
+        return cart[username]
     }
 
     static fetchAll(username) {
@@ -62,5 +62,6 @@ module.exports = class Cart {
 
     update() {
         cart[this.username][this.id] = this
+        return cart[username]
     }
 }

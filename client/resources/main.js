@@ -1,3 +1,5 @@
+username = ''
+
 window.onload = function () {
     updateUISignedOut()
 
@@ -14,6 +16,7 @@ window.onload = function () {
     document.getElementById('logoutBtn').onclick = function (event) {
         sessionStorage.setItem('token', null)
         updateUISignedOut()
+        username = ''
     }
 }
 
@@ -58,6 +61,7 @@ async function login(username, password) {
 
 function handleLoginResponse(res) {
     if (res.status === true) {
+        username = res.username
         sessionStorage.setItem('token', res.token)
         updateUISignedIn(res.username)
 
@@ -96,7 +100,6 @@ function renderProduct(products) {
 
         let addCartClicked = function (prod) {
             return function () {
-                console.log(prod);
                 addToCart(prod);
             };
         };
@@ -116,7 +119,6 @@ function renderProduct(products) {
 }
 
 function renderCart(cartItems) {
-    console.log(cartItems);
     if (Object.keys(cartItems).length === 0) {
         document.getElementById('emptyCart').style.display = 'block'
         document.getElementById('cartTable').style.display = 'none'
@@ -127,8 +129,21 @@ function renderCart(cartItems) {
 
     const table = document.getElementById('cartTable');
     table.innerHTML = '';
+    table.style.display = 'table'
+    table.style.width = '100%'
 
     for (const [id, prod] of Object.entries(cartItems)) {
+        const headerRow = document.createElement('tr');
+        const nameH = document.createElement('th');
+        nameH.textContent = "Name";
+        const priceH = document.createElement('th');
+        priceH.textContent = "Price";
+        const totalH = document.createElement('th');
+        totalH.textContent = "Total";
+        const quantityH = document.createElement('th');
+        quantityH.textContent = "Quantity";
+        
+
         const tableRow = document.createElement('tr');
 
         const name = document.createElement('td');
@@ -140,13 +155,47 @@ function renderCart(cartItems) {
         const total = document.createElement('td');
         total.textContent = prod.quantity * prod.price;
 
+        const quantityDiv = document.createElement('div');
+        quantityDiv.id = 'quantityBox'
+
+        const minus = document.createElement('div');
+        minus.textContent = '-'
+        minus.id = "btn"
+        const plus = document.createElement('div');
+        plus.textContent = '+'
+        plus.id = "btn"
+
+        minus.onclick = function (event) {
+            
+        }
+
+        plus.onclick = function (event) {
+            
+        }
+
+        // let addCartClicked = function (item) {
+        //     return function () {
+                
+        //     };
+        // };
+        // cartIcon.onclick = addCartClicked(prod);
+
+        quantityDiv.appendChild(minus)
         const quantity = document.createElement('td');
         quantity.textContent = prod.quantity;
 
+        quantityDiv.appendChild(quantity)
+        quantityDiv.appendChild(plus)
+
+        headerRow.appendChild(nameH);
+        headerRow.appendChild(priceH);
+        headerRow.appendChild(totalH);
+        headerRow.appendChild(quantityH);
         tableRow.appendChild(name);
         tableRow.appendChild(price);
         tableRow.appendChild(total);
-        tableRow.appendChild(quantity);
+        tableRow.appendChild(quantityDiv);
+        table.appendChild(headerRow);
         table.appendChild(tableRow);
     }
 }
@@ -163,7 +212,7 @@ async function getProducts() {
 }
 
 async function addToCart(product) {
-    let result = await fetch('http://localhost:4321/cart/', {
+    let result = await fetch('http://localhost:4321/cart/' + username, {
         method: 'POST',
         headers: {
             'Content-type': 'application/json',
@@ -173,8 +222,9 @@ async function addToCart(product) {
             id: product.id,
             name: product.name,
             price: product.price,
+            username: username
         })
-    }).then(res => res.json());
+    }).then(res => res.json())
     renderCart(result);
 }
 
@@ -190,34 +240,20 @@ async function getCart(username) {
         .then(cart => renderCart(cart));
 }
 
-function editProduct() {
-    const prodId = document.getElementById('product-btn').dataset.id;
-    const title = document.getElementById('title').value;
-    const isbn = document.getElementById('isbn').value;
-    const publishedDate = document.getElementById('publishedDate').value;
-    const author = document.getElementById('author').value;
-    fetch('http://localhost:3000/books/' + prodId, {
+function updateCart(item) {
+    fetch('http://localhost:4321/cart/' + username, {
         method: 'PUT',
         headers: {
             'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
         },
         body: JSON.stringify({
-            title: title,
-            isbn: isbn,
-            publishedDate: publishedDate,
-            author: author
+            id: item.id,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            username: item.username
         })
     }).then(response => response.json())
-        .then(jsonObj => {
-            const productDiv = document.getElementById(prodId);
-            productDiv.querySelector('h2').textContent = title;
-            const paragraphArr = productDiv.querySelectorAll('p');
-            paragraphArr[0].textContent = isbn;
-            paragraphArr[1].textContent = publishedDate;
-            paragraphArr[2].textContent = author;
-
-            document.getElementById('product-heading').textContent = 'Add a new Book';
-            document.getElementById('product-btn').dataset.id = '';
-            document.getElementById('product-form').reset();
-        });
+    .then(cart => renderCart(cart));
 }
