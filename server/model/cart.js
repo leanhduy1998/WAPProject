@@ -1,6 +1,4 @@
-let host = ""
-let port = "4321"
-
+const Product = require('../model/product');
 const cart = {
     // 'AnhDuy':
     //     {
@@ -35,18 +33,31 @@ module.exports = class Cart {
 
     save() {
         let username = this.username
-        let id = this.id
-        
+        var id = this.id
+
         if (!(username in cart)) {
             cart[username] = {};
             cart[username][id] = this;
         } else if (!(id in cart[username])) {
             cart[username][id] = this
-                
         } else {
-            cart[username][id].quantity ++;
+            cart[username][id].quantity++;
+        }
+
+
+        let availableStock = Product.findById(id).stock
+        if (cart[username][id].quantity > availableStock) {
+            cart[username][id].quantity = availableStock
         }
         return cart[username]
+    }
+
+    static getTotal(username) {
+        let total = 0
+        for (const [id, item] of Object.entries(cart[username])) {
+            total = total + parseFloat(item.quantity) * parseFloat(item.price)
+        }
+        return total
     }
 
     static fetchAll(username) {
@@ -61,7 +72,26 @@ module.exports = class Cart {
     }
 
     update() {
-        cart[this.username][this.id] = this
+        let username = this.username
+        let id = this.id
+
+        if (!(username in cart)) {
+            cart[username] = {};
+            cart[username][id] = this;
+        } else if (!(id in cart[username])) {
+            cart[username][id] = this
+        } else {
+            cart[username][id].quantity = this.quantity;
+        }
+
+        if (cart[username][id].quantity < 1) {
+            delete cart[username][id]
+        } else {
+            let availableStock = Product.findById(id).stock
+            if (cart[username][id].quantity > availableStock) {
+                cart[username][id].quantity = availableStock
+            }
+        }
         return cart[username]
     }
 }

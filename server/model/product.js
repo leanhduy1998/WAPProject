@@ -1,57 +1,41 @@
-let host = ""
-let port = "4321"
-
-const products = [
-    {
-        id: 0,
+const products = {
+    0: {
         name: 'Node.js',
         price: 10,
         image: 'https://nodejs.org/static/images/logo-hexagon-card.png',
         stock: 5
     },
-    {
+    1: {
         id: 1,
         name: 'React.js',
         price: 10,
         image: 'https://dwglogo.com/wp-content/uploads/2017/09/1460px-React_logo.png',
         stock: 50
     },
-    {
+    2: {
         id: 2,
         name: 'Angular',
         price: 10,
         image: 'https://angular.io/assets/images/logos/angularjs/AngularJS-Shield.svg',
         stock: 15
     }
-];
+};
 
 module.exports = class Product {
     constructor(id, name, price, image, stock) {
-        this.id = products.length + 1
+        this.id = id
         this.name = name
         this.price = price
         this.image = image
         this.stock = stock
     }
 
-    save() {
-        this.id = Math.random().toString();
-        products.push(this)
-    }
-
-    update() {
-        let list = products.filter(p => p.id !== this.id)
-        list.push(this)
-        products = list
-    }
-
     static findById(id) {
-        let list = products.filter(p => p.id === id)
-        if (list.length === 0) {
-            return null
+        console.log(id);
+        if (id in products) {
+            return products[id]
         }
-
-        return list[0]
+        return null
     }
 
     static fetchAll() {

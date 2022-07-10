@@ -49,7 +49,7 @@ async function login(username, password) {
         method: 'POST',
         headers: {
             'Content-type': 'application/json',
-            'x-auth-token': sessionStorage.getItem('token')
+            // 'x-auth-token': sessionStorage.getItem('token')
         },
         body: JSON.stringify({
             username: username,
@@ -73,8 +73,28 @@ function handleLoginResponse(res) {
 function renderProduct(products) {
     const table = document.getElementById('productTable');
     table.innerHTML = '';
+    const body = document.createElement('tbody');
+    table.appendChild(body)
 
-    products.forEach(prod => {
+    const headerRow = document.createElement('tr');
+    const nameH = document.createElement('th');
+    nameH.textContent = "Name";
+    const priceH = document.createElement('th');
+    priceH.textContent = "Price";
+    const imageH = document.createElement('th');
+    imageH.textContent = "Image";
+    const stockH = document.createElement('th');
+    stockH.textContent = "Stock";
+    const actionH = document.createElement('th');
+    actionH.textContent = "Actions";
+    headerRow.appendChild(nameH)
+    headerRow.appendChild(priceH)
+    headerRow.appendChild(imageH)
+    headerRow.appendChild(stockH)
+    headerRow.appendChild(actionH)
+    body.appendChild(headerRow);
+
+    for (const [id, prod] of Object.entries(products)) {
         const tableRow = document.createElement('tr');
 
         const name = document.createElement('td');
@@ -100,7 +120,7 @@ function renderProduct(products) {
 
         let addCartClicked = function (prod) {
             return function () {
-                addToCart(prod);
+                addToCart(id, prod);
             };
         };
         cartIcon.onclick = addCartClicked(prod);
@@ -114,12 +134,24 @@ function renderProduct(products) {
         tableRow.appendChild(image);
         tableRow.appendChild(stock);
         tableRow.appendChild(actions);
-        table.appendChild(tableRow);
-    });
+        body.appendChild(tableRow);
+    };
 }
 
-function renderCart(cartItems) {
-    if (Object.keys(cartItems).length === 0) {
+async function renderCart(cartItems) {
+    var total = 0
+    let count = Object.keys(cartItems).length
+    if (count > 0) {
+        total = await fetch('http://localhost:4321/cart/' + username + '/total/', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'x-auth-token': sessionStorage.getItem('token')
+            },
+        }).then(response => response.json());
+    }
+
+    if (count === 0) {
         document.getElementById('emptyCart').style.display = 'block'
         document.getElementById('cartTable').style.display = 'none'
     } else {
@@ -132,7 +164,10 @@ function renderCart(cartItems) {
     table.style.display = 'table'
     table.style.width = '100%'
 
-    for (const [id, prod] of Object.entries(cartItems)) {
+    const body = document.createElement('tbody');
+    table.appendChild(body)
+
+    if (count > 0) {
         const headerRow = document.createElement('tr');
         const nameH = document.createElement('th');
         nameH.textContent = "Name";
@@ -142,8 +177,15 @@ function renderCart(cartItems) {
         totalH.textContent = "Total";
         const quantityH = document.createElement('th');
         quantityH.textContent = "Quantity";
-        
 
+        headerRow.appendChild(nameH);
+        headerRow.appendChild(priceH);
+        headerRow.appendChild(totalH);
+        headerRow.appendChild(quantityH);
+        body.appendChild(headerRow);
+    }
+
+    for (const [id, prod] of Object.entries(cartItems)) {
         const tableRow = document.createElement('tr');
 
         const name = document.createElement('td');
@@ -165,20 +207,19 @@ function renderCart(cartItems) {
         plus.textContent = '+'
         plus.id = "btn"
 
-        minus.onclick = function (event) {
-            
-        }
+        minus.onclick = function (item) {
+            return function () {
+                item.quantity--;
+                updateCart(item)
+            };
+        }(prod)
 
-        plus.onclick = function (event) {
-            
-        }
-
-        // let addCartClicked = function (item) {
-        //     return function () {
-                
-        //     };
-        // };
-        // cartIcon.onclick = addCartClicked(prod);
+        plus.onclick = function (item) {
+            return function () {
+                item.quantity++;
+                updateCart(item)
+            };
+        }(prod)
 
         quantityDiv.appendChild(minus)
         const quantity = document.createElement('td');
@@ -187,16 +228,21 @@ function renderCart(cartItems) {
         quantityDiv.appendChild(quantity)
         quantityDiv.appendChild(plus)
 
-        headerRow.appendChild(nameH);
-        headerRow.appendChild(priceH);
-        headerRow.appendChild(totalH);
-        headerRow.appendChild(quantityH);
         tableRow.appendChild(name);
         tableRow.appendChild(price);
         tableRow.appendChild(total);
         tableRow.appendChild(quantityDiv);
-        table.appendChild(headerRow);
-        table.appendChild(tableRow);
+        body.appendChild(tableRow);
+    }
+
+    if (count > 0) {
+        const totalFoot = document.createElement('tfoot');
+        const totalRow = document.createElement('tr');
+        const totalD = document.createElement('td');
+        totalD.textContent = 'Total: ' + total
+        totalRow.appendChild(totalD);
+        totalFoot.appendChild(totalRow)
+        table.appendChild(totalFoot);
     }
 }
 
@@ -211,7 +257,7 @@ async function getProducts() {
     renderProduct(products)
 }
 
-async function addToCart(product) {
+async function addToCart(id, product) {
     let result = await fetch('http://localhost:4321/cart/' + username, {
         method: 'POST',
         headers: {
@@ -219,7 +265,7 @@ async function addToCart(product) {
             'x-auth-token': sessionStorage.getItem('token')
         },
         body: JSON.stringify({
-            id: product.id,
+            id: id,
             name: product.name,
             price: product.price,
             username: username
@@ -255,5 +301,5 @@ function updateCart(item) {
             username: item.username
         })
     }).then(response => response.json())
-    .then(cart => renderCart(cart));
+        .then(cart => renderCart(cart));
 }

@@ -2,7 +2,6 @@ const express = require('express');
 const productRouter = require('./router/productRouter');
 const cartRouter = require('./router/cartRouter');
 const loginRouter = require('./router/loginRouter');
-const authMiddleware = require('./authentication');
 const cors = require('cors');
 
 const app = express();
