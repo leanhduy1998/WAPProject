@@ -18,6 +18,22 @@ window.onload = function () {
         updateUISignedOut()
         username = ''
     }
+
+    document.getElementById('placeOrderBtn').onclick = function (event) {
+        fetch('http://localhost:4321/cart/' + username + '/placeOrder', {
+        method: 'POST',
+        headers: {
+            'Content-type': 'application/json',
+            'x-auth-token': sessionStorage.getItem('token')
+        },
+        body: JSON.stringify({
+            username: this.username
+        })
+    }).then(() => {
+        getCart(username)
+        getProducts()
+    })
+    }
 }
 
 function updateUISignedOut() {
@@ -154,9 +170,11 @@ async function renderCart(cartItems) {
     if (count === 0) {
         document.getElementById('emptyCart').style.display = 'block'
         document.getElementById('cartTable').style.display = 'none'
+        document.getElementById('placeOrderBtn').style.display = 'none'
     } else {
         document.getElementById('emptyCart').style.display = 'none'
         document.getElementById('cartTable').style.display = 'block'
+        document.getElementById('placeOrderBtn').style.display = 'block'
     }
 
     const table = document.getElementById('cartTable');
@@ -239,7 +257,10 @@ async function renderCart(cartItems) {
         const totalFoot = document.createElement('tfoot');
         const totalRow = document.createElement('tr');
         const totalD = document.createElement('td');
+        totalD.colSpan = 4;
         totalD.textContent = 'Total: ' + total
+        totalD.style.textAlign = 'right'
+
         totalRow.appendChild(totalD);
         totalFoot.appendChild(totalRow)
         table.appendChild(totalFoot);

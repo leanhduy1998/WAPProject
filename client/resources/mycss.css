@@ -69,3 +69,12 @@ label {
     border: 1px solid black;
     padding: 5px;
 }
+
+#placeOrderBtn {
+    border: 1px solid black;
+    float: right;
+}
+
+#placeOrderBtn {
+    display: none;
+}

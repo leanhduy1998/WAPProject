@@ -57,7 +57,7 @@ module.exports = class Cart {
         for (const [id, item] of Object.entries(cart[username])) {
             total = total + parseFloat(item.quantity) * parseFloat(item.price)
         }
-        return total
+        return Math.round(total * 100) / 100 
     }
 
     static fetchAll(username) {
@@ -93,5 +93,17 @@ module.exports = class Cart {
             }
         }
         return cart[username]
+    }
+
+    static placeOrder(username) {
+        for (const [id, orderItem] of Object.entries(cart[username])) {
+            let product = Product.findById(id)
+            if (product.stock < orderItem.quantity) {
+                return Error("Out Of Stock")
+            }
+            product.stock = product.stock - orderItem.quantity
+        }
+
+        delete cart[username]
     }
 }

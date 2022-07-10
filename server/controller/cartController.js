@@ -23,3 +23,7 @@ exports.update = (req, res, next) => {
 exports.getTotal = (req, res, next) => {
     res.status(201).json(Cart.getTotal(req.params.username));
 }
+
+exports.placeOrder = (req, res, next) => {
+    res.status(201).json(Cart.placeOrder(req.params.username));
+}
