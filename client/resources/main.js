@@ -6,9 +6,6 @@ window.onload = function () {
     updateUISignedOut()
 
     document.getElementById('loginBtn').onclick = function (event) {
-        document.getElementById("username").value = 'Duy1'
-        document.getElementById("password").value = 'Duy1'
-
         let username = document.getElementById('username').value
         let password = document.getElementById('password').value
 
