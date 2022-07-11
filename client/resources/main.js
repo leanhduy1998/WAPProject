@@ -242,6 +242,7 @@ async function renderCart(cartItems) {
 
         const quantityDiv = document.createElement('div');
         quantityDiv.id = 'quantityBox'
+        quantityDiv.style.backgroundColor = 'transparent'
 
         const minus = document.createElement('button');
         minus.innerHTML = '-'
