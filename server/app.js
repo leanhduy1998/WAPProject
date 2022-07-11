@@ -13,9 +13,9 @@ const User = require("./model/user");
 validateToken = ((req, res, next) => {
     let token = req.header('x-auth-token')
     if (token === null) {
-        next(new Error('Access denied'));
+        next({message: 'Access denied', status: false});
     } else if(!User.verifyToken(token)) {
-        return next("Invalid token");
+        return next({message: 'Invalid token', status: false});
     }
     req.username = User.getUsernameFromToken(token)
     next()
@@ -32,9 +32,12 @@ app.use((req, res, next) => {
 
 app.use((err, req, res, next) => {
     if (err.message === 'NOT Found') {
-        res.status(404).json({ error: err.message });
+        res.status(404).json({ status: false, error: err.message });
+    } else if (err.message === 'Invalid token') {
+        res.status(401).json({ status: false, error: err.message });
     } else {
-        res.status(500).json({ error: 'Something is wrong! Try later' });
+        console.log('uncaught: ' + err);
+        res.status(500).json({ status: false, error: 'Something is wrong! Try later' });
     }
 });
 

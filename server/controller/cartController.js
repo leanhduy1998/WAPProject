@@ -25,5 +25,10 @@ exports.getTotal = (req, res, next) => {
 }
 
 exports.placeOrder = (req, res, next) => {
-    res.status(201).json(Cart.placeOrder(req.params.username));
+    const response = Cart.placeOrder(req.params.username)
+    if(response.status === false) {
+        res.status(400).json(response);
+    } else {
+        res.status(201).json(response);
+    }
 }

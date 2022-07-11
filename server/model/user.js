@@ -1,7 +1,6 @@
 const user = {
-    'AnhDuy': 'DuyAnh',
-    'Duy1': '1',
-    'Duy2': '2'
+    'Duy1': 'Duy1',
+    'Duy2': 'Duy2'
 }
 
 module.exports = class User {
@@ -16,7 +15,8 @@ module.exports = class User {
             }
         }
         return {
-            status: false
+            status: false,
+            error: 'Wrong username and password'
         }
     }
     
@@ -31,7 +31,7 @@ module.exports = class User {
     static verifyToken(token) {
         let splitted = token.split('-')
         let username = splitted[0]
-        return user[username] !== null
+        return username in user
     }
 
     static getUsernameFromToken(token) {

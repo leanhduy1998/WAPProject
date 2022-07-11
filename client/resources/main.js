@@ -1,11 +1,13 @@
 username = ''
+cart = {}
+products = {}
 
 window.onload = function () {
     updateUISignedOut()
 
     document.getElementById('loginBtn').onclick = function (event) {
-        document.getElementById("username").value = 'AnhDuy'
-        document.getElementById("password").value = 'DuyAnh'
+        document.getElementById("username").value = 'Duy1'
+        document.getElementById("password").value = 'Duy1'
 
         let username = document.getElementById('username').value
         let password = document.getElementById('password').value
@@ -14,9 +16,7 @@ window.onload = function () {
     }
 
     document.getElementById('logoutBtn').onclick = function (event) {
-        sessionStorage.setItem('token', null)
-        updateUISignedOut()
-        username = ''
+        logout()
     }
 
     document.getElementById('placeOrderBtn').onclick = function (event) {
@@ -29,11 +29,25 @@ window.onload = function () {
         body: JSON.stringify({
             username: this.username
         })
-    }).then(() => {
-        getCart(username)
-        getProducts()
+    }).then(response => response.json())
+    .then((response) => {
+        console.log(response);
+        if (response.status === false) {
+            window.alert(response.error);
+        } else {
+            getCart(username)
+            getProducts()
+        }
     })
     }
+}
+
+function logout() {
+    sessionStorage.setItem('token', null)
+    updateUISignedOut()
+    delete username
+    delete cart
+    delete product
 }
 
 function updateUISignedOut() {
@@ -65,7 +79,6 @@ async function login(username, password) {
         method: 'POST',
         headers: {
             'Content-type': 'application/json',
-            // 'x-auth-token': sessionStorage.getItem('token')
         },
         body: JSON.stringify({
             username: username,
@@ -83,6 +96,10 @@ function handleLoginResponse(res) {
 
         getProducts();
         getCart(res.username);
+    } else {
+        logout()
+        console.log(res);
+        window.alert(res.error);
     }
 }
 
@@ -130,9 +147,8 @@ function renderProduct(products) {
         stock.textContent = prod.stock;
 
         const actions = document.createElement('td');
-        const cartIcon = document.createElement('i');
+        const cartIcon = document.createElement('button');
         cartIcon.className = "bi bi-cart-plus";
-        cartIcon.dataset.id = prod.id;
 
         let addCartClicked = function (prod) {
             return function () {
@@ -140,6 +156,16 @@ function renderProduct(products) {
             };
         };
         cartIcon.onclick = addCartClicked(prod);
+
+        if(id in products) {
+            if(this.products[id].stock === 0) {
+                cartIcon.disabled = true
+            } else {
+                cartIcon.disabled = false
+            }
+        } else {
+            cartIcon.disabled = false
+        }
 
         cartIcon.style.fontSize = '2rem';
         actions.appendChild(cartIcon);
@@ -210,20 +236,37 @@ async function renderCart(cartItems) {
         name.textContent = prod.name;
 
         const price = document.createElement('td');
-        price.textContent = prod.price
+        price.textContent = '$'+ Math.round(prod.price * 100) / 100 
 
         const total = document.createElement('td');
-        total.textContent = prod.quantity * prod.price;
+        total.textContent = '$'+ Math.round(prod.quantity * prod.price * 100) / 100;
 
         const quantityDiv = document.createElement('div');
         quantityDiv.id = 'quantityBox'
 
-        const minus = document.createElement('div');
-        minus.textContent = '-'
+        const minus = document.createElement('button');
+        minus.innerHTML = '-'
         minus.id = "btn"
-        const plus = document.createElement('div');
-        plus.textContent = '+'
+        if(id in products && this.products[id].stock === 0) {
+            minus.disabled = true
+        } else {
+            minus.disabled = false
+        }
+
+        const plus = document.createElement('button');
+        plus.innerHTML = '+'
         plus.id = "btn"
+
+        if(id in products && id in cart) {
+            if(this.products[id].stock <= this.cart[id].quantity) {
+                plus.disabled = true
+            } else {
+                plus.disabled = false
+            }
+        } else {
+            plus.disabled = false
+        }
+        
 
         minus.onclick = function (item) {
             return function () {
@@ -258,7 +301,7 @@ async function renderCart(cartItems) {
         const totalRow = document.createElement('tr');
         const totalD = document.createElement('td');
         totalD.colSpan = 4;
-        totalD.textContent = 'Total: ' + total
+        totalD.textContent = 'Total: $' + total
         totalD.style.textAlign = 'right'
 
         totalRow.appendChild(totalD);
@@ -275,7 +318,13 @@ async function getProducts() {
             'x-auth-token': sessionStorage.getItem('token')
         }
     }).then(response => response.json());
-    renderProduct(products)
+    if (products.status !== false) {
+        this.products = products
+        renderProduct(products)
+    } else {
+        logout()
+        window.alert(products.error);
+    }
 }
 
 async function addToCart(id, product) {
@@ -292,7 +341,13 @@ async function addToCart(id, product) {
             username: username
         })
     }).then(res => res.json())
-    renderCart(result);
+    if(result.status === false) {
+        logout()
+        window.alert(result.error);
+    } else {
+        this.cart = result
+        renderCart(result);
+    }
 }
 
 async function getCart(username) {
@@ -304,7 +359,15 @@ async function getCart(username) {
         }
     })
         .then(response => response.json())
-        .then(cart => renderCart(cart));
+        .then(cart => {
+            if (cart.status !== false) {
+                this.cart = cart
+                renderCart(cart)
+            } else {
+                logout()
+                window.alert(cart.error);
+            }
+        });
 }
 
 function updateCart(item) {
@@ -322,5 +385,13 @@ function updateCart(item) {
             username: item.username
         })
     }).then(response => response.json())
-        .then(cart => renderCart(cart));
+    .then(cart => {
+        if (cart.status !== false) {
+            this.cart = cart
+            renderCart(cart)
+        } else {
+            logout()
+            window.alert(cart.error);
+        }
+    });
 }

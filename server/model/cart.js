@@ -99,11 +99,18 @@ module.exports = class Cart {
         for (const [id, orderItem] of Object.entries(cart[username])) {
             let product = Product.findById(id)
             if (product.stock < orderItem.quantity) {
-                return Error("Out Of Stock")
+                return {
+                    status: false,
+                    error: 'Out Of Stock'
+                }
             }
             product.stock = product.stock - orderItem.quantity
         }
 
         delete cart[username]
+
+        return {
+            status: true,
+        }
     }
 }
