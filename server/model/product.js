@@ -2,21 +2,21 @@ const products = {
     0: {
         name: 'Node.js',
         price: 9.99,
-        image: 'https://nodejs.org/static/images/logo-hexagon-card.png',
+        image: '/assets/node.png',
         stock: 8
     },
     1: {
         id: 1,
         name: 'React.js',
         price: 19.99,
-        image: 'https://dwglogo.com/wp-content/uploads/2017/09/1460px-React_logo.png',
+        image: '/assets/react.png',
         stock: 5
     },
     2: {
         id: 2,
         name: 'Angular',
         price: 29.99,
-        image: 'https://angular.io/assets/images/logos/angularjs/AngularJS-Shield.svg',
+        image: '/assets/angular.png',
         stock: 13
     }
 };
@@ -31,7 +31,6 @@ module.exports = class Product {
     }
 
     static findById(id) {
-        console.log(id);
         if (id in products) {
             return products[id]
         }

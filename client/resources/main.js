@@ -40,6 +40,8 @@ window.onload = function () {
         }
     })
     }
+
+    document.getElementById('logo').src = 'http://localhost:4321/public/assets/logo.png'
 }
 
 function logout() {
@@ -138,7 +140,7 @@ function renderProduct(products) {
 
         const image = document.createElement('td');
         const img = document.createElement('img');
-        img.src = prod.image;
+        img.src = 'http://localhost:4321/public' + prod.image;
         img.height = 50;
         image.appendChild(img);
         image.style.textAlign = 'center';

@@ -3,11 +3,13 @@ const productRouter = require('./router/productRouter');
 const cartRouter = require('./router/cartRouter');
 const loginRouter = require('./router/loginRouter');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 const User = require("./model/user");
 validateToken = ((req, res, next) => {
@@ -36,9 +38,10 @@ app.use((err, req, res, next) => {
     } else if (err.message === 'Invalid token') {
         res.status(401).json({ status: false, error: err.message });
     } else {
-        console.log('uncaught: ' + err);
         res.status(500).json({ status: false, error: 'Something is wrong! Try later' });
     }
 });
+
+
 
 app.listen(4321, () => console.log('listening to 4321...'));
